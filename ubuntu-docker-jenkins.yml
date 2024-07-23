@@ -1,0 +1,141 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Metadata:
+  License: Apache-2.0
+  Authors:
+    Description: Joseph Mbatchou  # The writer of this template
+  Description: " This template launches an ubuntu ec2 instance in a custom VPC, with an IAM assume role attached to it
+              for SSM, then with the user data it will install Docker and Jenkins"
+
+Parameters:
+  InstanceType:
+    Description: EC2 instance type.
+    Type: String
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+  KeyName:
+    Description: Name of an existing EC2 key pair for SSH access to the EC2 instance.
+    Type: AWS::EC2::KeyPair::KeyName
+  SSHLocation:
+    Description: Place to enter your IP address. The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: '/aws/service/canonical/ubuntu/server/jammy/stable/current/amd64/hvm/ebs-gp2/ami-id'
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select an existing VPC
+  SubnetIds:
+    Type: AWS::EC2::Subnet::Id
+    Description: Select at least one subnet within the selected VPC  
+
+Resources:
+  IamRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-Ec2RoleForSSM"
+      Description: EC2 IAM role for SSM access
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+
+  Ec2InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: !Sub "${AWS::StackName}-Ec2RoleForSSM"
+      Path: /
+      Roles:
+        - !Ref IamRole
+
+  WebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      IamInstanceProfile: !Ref Ec2InstanceProfile
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+            - !Ref WebServerSecurityGroup
+          SubnetId: !Ref SubnetIds
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo apt-get update 
+          sudo apt-get install -y ca-certificates curl gnupg
+          sudo install -m 0755 -d /etc/apt/keyrings
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          sudo chmod a+r /etc/apt/keyrings/docker.gpg
+          echo \
+             "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+             $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+             sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+          sudo apt-get update 
+          sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+          sudo systemctl start docker.service
+          sudo systemctl enable docker.service
+          sudo usermod -aG docker ubuntu
+          sudo apt-get update -y
+          sudo apt-get install openjdk-17-jdk -y
+          sudo curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io-2023.key | sudo tee   /usr/share/keyrings/jenkins-keyring.asc > /dev/null
+          sudo echo deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc]   https://pkg.jenkins.io/debian-stable binary/ | sudo tee   /etc/apt/sources.list.d/jenkins.list > /dev/null
+          sudo apt-get update  
+          sudo apt-get install jenkins -y
+          sudo systemctl start jenkins
+          sudo systemctl enable jenkins
+          sudo usermod -aG jenkins ubuntu
+          sudo ufw allow 8080
+          sudo ufw allow OpenSSH
+          sudo ufw enable
+      Tags:     
+        - Key: Name
+          Value: Ubuntu-Docker-jenkins-server
+
+  WebServerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Enable HTTP access via port 80 SSH access'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 8080
+          IpProtocol: tcp
+          ToPort: 8080
+        - CidrIp: !Ref SSHLocation
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80 
+
+Outputs:
+  InstanceId:
+    Description: ID of the EC2 instance
+    Value: !Ref WebServer
+  PublicDNS:
+    Description: Public DNS name of the EC2 instance
+    Value: !GetAtt WebServer.PublicDnsName
+  PublicIP:
+    Description: Public IP address of the EC2 instance
+    Value: !GetAtt WebServer.PublicIp
