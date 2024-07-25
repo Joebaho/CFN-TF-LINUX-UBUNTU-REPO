@@ -94,16 +94,7 @@ connection or you can SSH to  the server.
 
 ## Bash Scripting
 
-# Jenkins and Docker Installation Scripts
-
-This repository contains bash scripts to automate the installation of Jenkins and Docker on different Linux distributions.
-
-## Scripts Overview
-
-1. `Linux_docker_jenkins.sh`: Installs Jenkins and Docker on Amazon Linux 2
-
-Certainly! I'll create a README presentation for your GitHub repository that includes two bash scripts: one for installing Jenkins and Docker on Amazon Linux 2, and another for Ubuntu Server. Here's the content you can use for your README.md:
-markdownCopy# Jenkins and Docker Installation Scripts
+### Jenkins and Docker Installation Scripts
 
 This repository contains bash scripts to automate the installation of Jenkins and Docker on different Linux distributions.
 
