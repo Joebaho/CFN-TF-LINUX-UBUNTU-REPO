@@ -92,3 +92,71 @@ After each resouces create you can connect to the server via SSM connect and fro
 With these files you are now capable to run quickly a server with Docker and Jenkins install directly inside. You can run them via CloudFormation or Terraform. You can also onnect directly via SSM 
 connection or you can SSH to  the server. 
 
+## Bash Scripting
+
+# Jenkins and Docker Installation Scripts
+
+This repository contains bash scripts to automate the installation of Jenkins and Docker on different Linux distributions.
+
+## Scripts Overview
+
+1. `Linux_docker_jenkins.sh`: Installs Jenkins and Docker on Amazon Linux 2
+
+Certainly! I'll create a README presentation for your GitHub repository that includes two bash scripts: one for installing Jenkins and Docker on Amazon Linux 2, and another for Ubuntu Server. Here's the content you can use for your README.md:
+markdownCopy# Jenkins and Docker Installation Scripts
+
+This repository contains bash scripts to automate the installation of Jenkins and Docker on different Linux distributions.
+
+## Scripts Overview
+
+1. `Linux_docker_jenkins.sh`: Installs Jenkins and Docker on Amazon Linux 2
+   
+What it does:
+
+Updates the system
+Installs Java (required for Jenkins)
+Installs Jenkins
+Installs Docker
+Starts and enables Jenkins and Docker services
+Adds the current user to the Docker group
+
+## Usage:
+
+Run the folowwing command to make the file executable nd give permission to be execute
+
+```bash
+chmod +x Linux_docker_jenkins.sh
+```
+Then run this command to have application install
+
+```bash
+./Linux_docker_jenkins.sh
+```
+
+2. `ubuntu_docker_jenkins.sh`: Installs Jenkins and Docker on Ubuntu Server
+
+What it does:
+
+Updates the system
+Installs Java (required for Jenkins)
+Installs Jenkins
+Installs Docker
+Starts and enables Jenkins and Docker services
+Adds the current user to the Docker group
+
+## Usage 
+
+Run the folowwing command to make the file executable nd give permission to be execute
+
+```bash
+chmod +x ubuntu_docker_jenkins.sh
+```
+Then run this command to have application install
+
+```bash
+./ubuntu_docker_jenkins.sh
+```
+
+
+
+
