@@ -29,23 +29,25 @@ Firewall: Firewall rulesets created with iptables or iptables6, and added to the
 2. Jenkins is written in Java. So for Jenins to work you must have the latest version of Jenkins install
    
 ## CloudFormation
-Linux-Docker-Jenkins.yml 
-ubuntu-docker-jenkins.yml
+
+- Linux-Docker-Jenkins.yml 
+- ubuntu-docker-jenkins.yml
 
 Open your account and go to CloudFormation. From there you can launch each stack.
 
 ## Terraform
-Linux-main.tf
-ubuntu-main.tf
 
-Put the file in a folder then follow steps to run 
+- Linux-main.tf
+- ubuntu-main.tf
+
+Put the each file in a folder then follow steps to run 
 
 1. Initialise the folder
 ```
 terraform init
 ```
 
-2. Check the correct syntax ofthe file
+2. Check the correct syntax of the file
 ```
 terraform fmt
 ```
@@ -147,6 +149,8 @@ Then run this command to have application install
 ```bash
 ./ubuntu_docker_jenkins.sh
 ```
+
+After the installation completed you can use the command listed ion top to check the version of each open source installed. 
 
 
 
