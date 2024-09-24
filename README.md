@@ -30,16 +30,11 @@ Firewall: Firewall rulesets created with iptables or iptables6, and added to the
 3. EKS to work you must install AWS CLi on the server. 
    
 ## CloudFormation
-<<<<<<< HEAD
 
-- Linux-Docker-Jenkins.yml 
-- ubuntu-docker-jenkins.yml
-=======
 Linux-Docker-Jenkins.yml 
 ubuntu-docker-jenkins.yml
 Linux-eksctl-kubectl.yml
 Ubuntu-eksctl-kubectl.yml
->>>>>>> 8d0a12f ( Adding eks and kubectl installation)
 
 Open your account and go to CloudFormation. From there you can launch each stack.
 
@@ -60,16 +55,13 @@ Run the script with sudo privilege
    ```
 
 ## Terraform
-<<<<<<< HEAD
-=======
+
 Linux-main.tf
 ubuntu-main.tf
 Linux-eksctl-kubectl.tf
 Ubuntu-eksctl-kubectl.tf
->>>>>>> 8d0a12f ( Adding eks and kubectl installation)
-
-- Linux-main.tf
-- ubuntu-main.tf
+Linux-main.tf
+Ubuntu-main.tf
 
 Put the each file in a folder then follow steps to run 
 
