@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Metadata:
+ License: Apache-2.0
+ Authors:
+    Description: Joseph Mbatchou  
+ Description: " This template launches an amazon Linux 2 ec2 instance in a custom VPC, with an IAM assume role attached to it
+              for SSM, then with the user data it will install Docker and Jenkins"
+
+Parameters:
+  InstanceType:
+    Description: EC2 instance type.
+    Type: String
+    AllowedValues:
+      - t2.nano
+      - t2.micro
+      - t2.small
+      - t2.medium
+      - t2.large
+  KeyName:
+    Description: Name of an existing EC2 key pair for SSH access to the EC2 instance.
+    Type: AWS::EC2::KeyPair::KeyName
+  SSHLocation:
+    Description: The IP address range that can be used to SSH to the EC2 instances
+    Type: String
+    MinLength: '9'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})" # IP Address
+    ConstraintDescription: must be a valid IP CIDR range of the form x.x.x.x/x.
+  ImageId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: Select an existing VPC
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Select an existing subnet within the selected VPC
+Resources:
+  IamRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: Ec2RoleForSSM
+      Description: EC2 IAM role for SSM access
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore'
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+  Ec2InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: Ec2RoleForSSM
+      Path: /
+      Roles:
+        - Ref: IamRole
+  WebServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      IamInstanceProfile: !Ref Ec2InstanceProfile
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType 
+      KeyName: !Ref KeyName
+      NetworkInterfaces: 
+      - AssociatePublicIpAddress: "true"
+        DeviceIndex: "0"
+        GroupSet: 
+          - !Ref WebServerSecurityGroup
+        SubnetId: !Ref SubnetId
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          sudo yum update -y
+          sudo yum install python3-pip
+          sudo amazon-linux-extras install docker
+          sudo yum install -y docker
+          sudo service docker start
+          sudo systemctl enable docker
+          sudo systemctl restart docker
+          sudo usermod -aG docker ec2-user
+          sudo yum update -y
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+          rm kubectl
+          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
+          sudo mv /tmp/eksctl /usr/local/bin
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          rm -rf aws awscliv2.zip
+          sudo reboot
+          
+      Tags:
+       - Key: Name
+         Value: Linux-eksctl-kubectl-Server
+  WebServerSecurityGroup: 
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: 'Enable HTTP access via port 80 SSH access'
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - CidrIp: 0.0.0.0/0
+          FromPort: 8080
+          IpProtocol: tcp
+          ToPort: 8080
+        - CidrIp: !Ref SSHLocation
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+        - CidrIp: 0.0.0.0/0
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80 
+
+Outputs:
+  InstanceId:
+    Description: ID of the EC2 instance
+    Value: !Ref WebServer
+  PublicDNS:
+    Description: Public DNS name of the EC2 instance
+    Value: !GetAtt WebServer.PublicDnsName
+  PublicIP:
+    Description: Public IP address of the EC2 instance
+    Value: !GetAtt WebServer.PublicIp 

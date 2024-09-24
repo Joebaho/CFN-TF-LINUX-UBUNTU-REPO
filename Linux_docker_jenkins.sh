@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # install Jenkins
 sudo yum update -y
 sudo sudo wget -O /etc/yum.repos.d/jenkins.repo \
@@ -11,6 +12,7 @@ sudo systemctl start jenkins
 sudo systemctl enable jenkins
 sudo systemctl restart jenkins
 sudo usermod -aG jenkins ec2-user
+
 #install Docker
 sudo yum update -y
 sudo yum install python3-pip

@@ -1,4 +1,5 @@
 #!/bin/bash
+
 #Install Jenkins
 sudo apt-get update -y
 sudo apt-get install openjdk-17-jdk -y
@@ -12,6 +13,7 @@ sudo usermod -aG jenkins ubuntu
 sudo ufw allow 8080
 sudo ufw allow OpenSSH
 sudo ufw enabley
+
 #install Docker
 sudo apt-get update
 sudo apt-get install -y ca-certificates curl gnupg

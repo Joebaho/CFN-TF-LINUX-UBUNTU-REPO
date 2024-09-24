@@ -1,6 +1,6 @@
 # Description
-This repository contains cloudformation templates and Terraform configuration files that will launches an amazon Linux 2 and Ubuntu EC2 instance in a custom VPC. The files will include an IAM assume role attached to them
-for SSM connect. And with the user data of each files will allow installation of Docker and Jenkins.
+This repository contains cloudformation templates, Terraform configuration files and bashscript codes that will launches an amazon Linux 2 and Ubuntu EC2 instance in a custom VPC. The files will include an IAM assume role attached to them
+for SSM connect. And with the user data of each files will allow installation of Docker and Jenkins in ne server. It also install Eksctl and Kubectl on Ubuntu and Amazon linux 2 servers.
 
 ## Prerequisites
 1. To install Jenkins on a server you must have minimum hardware requirements:
@@ -26,16 +26,47 @@ Firewall: Firewall rulesets created with iptables or iptables6, and added to the
    
 ## Requirements
 1. Docker work  will be install on server if you at least Python3 is install.
-2. Jenkins is written in Java. So for Jenins to work you must have the latest version of Jenkins install
+2. Jenkins is written in Java. So for Jenkins to work you must have the latest version of Jenkins install
+3. EKS to work you must install AWS CLi on the server. 
    
 ## CloudFormation
+<<<<<<< HEAD
 
 - Linux-Docker-Jenkins.yml 
 - ubuntu-docker-jenkins.yml
+=======
+Linux-Docker-Jenkins.yml 
+ubuntu-docker-jenkins.yml
+Linux-eksctl-kubectl.yml
+Ubuntu-eksctl-kubectl.yml
+>>>>>>> 8d0a12f ( Adding eks and kubectl installation)
 
 Open your account and go to CloudFormation. From there you can launch each stack.
 
+## Bash Scripting
+Linux_docker_jenkins.sh
+Linux-eksctl-kubectl.sh
+Ubuntu_docker_jenkins.sh
+Ubuntu-eksctl-kubectl.sh
+
+After the script written we have to save them on a file with extension .sh
+Make the script executable by changing the modification with the command 
+   ```
+   chmod +x file_name.sh
+   ```
+Run the script with sudo privilege
+   ```
+   sudo ./file_name.sh
+   ```
+
 ## Terraform
+<<<<<<< HEAD
+=======
+Linux-main.tf
+ubuntu-main.tf
+Linux-eksctl-kubectl.tf
+Ubuntu-eksctl-kubectl.tf
+>>>>>>> 8d0a12f ( Adding eks and kubectl installation)
 
 - Linux-main.tf
 - ubuntu-main.tf
